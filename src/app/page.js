@@ -1,112 +1,191 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import AddIcon from "@/components/icons/AddIcon";
+import BarIcon from "@/components/icons/BarIcon";
+import Redo from "@/components/icons/Redo";
+import Undo from "@/components/icons/Undo";
+import XmarkIcon from "@/components/icons/XmarkIcon";
 
 export default function Home() {
+  const [items, setItems] = useState([]);
+  const [selector, setSelector] = useState("");
+  const [text, setText] = useState("");
+  const [delay, setDelay] = useState(0);
+  // const [itemType, setItemType] = useState("Wait");
+  // add item
+  const addItem = () => {
+    setItems((prev) => {
+      return [
+        ...prev,
+        {
+          wait: "",
+        },
+      ];
+    });
+  };
+  // change item type
+  const handleTypeChange = (e) => {
+    const index = Number(e.target.dataset.id);
+    const itemToUpdate = items[index];
+    const isWait = itemToUpdate.hasOwnProperty("wait");
+    const isClick = itemToUpdate.hasOwnProperty("click");
+    const isFill = itemToUpdate.hasOwnProperty("fill");
+    const isDelay = itemToUpdate.hasOwnProperty("delay");
+    // store previous value
+    let selector = "";
+    let delay = 0;
+    let text = "";
+    if (isWait) {
+      selector = itemToUpdate.wait;
+    } else if (isFill) {
+      selector = itemToUpdate.fill.selector || "";
+      delay = itemToUpdate.fill.delay || 0;
+      text = itemToUpdate.fill.text || "";
+    } else if (isClick) {
+      selector = itemToUpdate.click || "";
+    } else {
+      delay = itemToUpdate.delay || 0;
+    }
+    // update item and set into items
+    let newItem;
+    if (e.target.value === "wait") {
+      newItem = { wait: selector };
+    } else if (e.target.value === "fill") {
+      newItem = { fill: { selector, delay, text } };
+    } else if (e.target.value === "delay") {
+      newItem = { delay };
+    } else {
+      newItem = { click: selector };
+    }
+    const updatedItems = items.map((item, i) => (i === index ? newItem : item));
+    setItems(updatedItems);
+  };
+
+  // change json value
+  const handleJsonChange = (e) => {
+    try {
+      const updatedItems = JSON.parse(e.target.value);
+      const newItems = updatedItems.map((item) => item);
+      setItems(newItems);
+    } catch (error) {
+      alert("invalid input");
+    }
+  };
+  // JSX
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className="max-w-7xl mx-auto py-8">
+      <div className="w-full flex flex-col justify-between gap-6 lg:flex-row p-4">
+        {/* List section  */}
+        <div className="w-full lg:w-2/3  flex gap-4 flex-col">
+          <h2 className="text-lg text-center sm:text-left font-semibold">
+            Browser Instruction List
+          </h2>
+          {/* clear, add, undo, and redo button  */}
+          {/* <InitialBtns /> */}
+          <div className="flex justify-center sm:justify-end gap-2 items-center">
+            <button className="px-1 py-2 border border-gray-300 rounded">
+              <Undo />
+            </button>
+            <button className="px-1 py-2 border border-gray-300 rounded">
+              <Redo />
+            </button>
+            <button className="p-1 border border-gray-300 rounded">
+              Clear
+            </button>
+            <button
+              onClick={addItem}
+              className="px-1 py-2 border border-gray-300 rounded"
+            >
+              <AddIcon />
+            </button>
+          </div>
+          {/* list items  */}
+          <ul className="flex flex-col gap-4 w-full">
+            {items.length > 0 &&
+              items.map((item, index) => {
+                const type = Object.keys(item)[0];
+                let selector = "";
+                let delay = 0;
+                let text = "";
+                if (type === "wait") {
+                  selector = item.wait;
+                } else if (type === "fill") {
+                  selector = item.fill.selector || "";
+                  delay = item.fill.delay || 0;
+                  text = item.fill.text || "";
+                } else if (type === "click") {
+                  selector = item.click || "";
+                } else {
+                  delay = item.delay || 0;
+                }
+                return (
+                  <li
+                    key={index}
+                    className="p-1 border-2 border-gray-300 rounded flex gap-1"
+                  >
+                    <button>
+                      <BarIcon />
+                    </button>
+                    <select
+                      name="list-name"
+                      id="list-type"
+                      value={type}
+                      data-id={index}
+                      onChange={handleTypeChange}
+                      className="p-1 border border-gray-300 rounded"
+                    >
+                      <option value="wait">Wait</option>
+                      <option value="fill">Fill</option>
+                      <option value="delay">Delay</option>
+                      <option value="click">Click</option>
+                    </select>
+                    <input
+                      type="text"
+                      name="selector"
+                      defaultValue={selector}
+                      className={`w-full p-1 border border-gray-300 rounded ${
+                        type === "delay" ? "hidden" : ""
+                      }`}
+                    />
+                    <input
+                      type="text"
+                      name="text"
+                      defaultValue={text}
+                      className={`w-full p-1 border border-gray-300 rounded ${
+                        type === "fill" ? "" : "hidden"
+                      }`}
+                    />
+                    <input
+                      type="number"
+                      name="delay"
+                      defaultValue={delay}
+                      className={`w-full p-1 border border-gray-300 rounded ${
+                        type === "fill" || type === "delay" ? "" : "hidden"
+                      }`}
+                    />
+                    <button className="p-1 border border-gray-300 rounded">
+                      Clone
+                    </button>
+                    <button className="px-1 py-2 border border-gray-300 rounded">
+                      <XmarkIcon />
+                    </button>
+                  </li>
+                );
+              })}
+          </ul>
         </div>
-      </div>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
+        {/* JSON section  */}
+        <div className="w-full sm:mx-auto lg:w-1/3 flex gap-4 flex-col">
+          <h2 className="text-lg text-center sm:text-left font-semibold">
+            JSON Output
           </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+          <textarea
+            value={JSON.stringify(items, null, 2)}
+            onChange={handleJsonChange}
+            className="border-2 border-gray-900 h-72 rounded overflow-y-scroll p-2 focus:outline-none"
+          ></textarea>
+        </div>
       </div>
     </main>
   );
