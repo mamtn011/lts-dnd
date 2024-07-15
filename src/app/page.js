@@ -4,16 +4,17 @@ import AddIcon from "@/components/icons/AddIcon";
 import BarIcon from "@/components/icons/BarIcon";
 import Redo from "@/components/icons/Redo";
 import Undo from "@/components/icons/Undo";
-import XmarkIcon from "@/components/icons/XmarkIcon";
+import { findInputsValue } from "@/utils/findInputValues";
+import { updateOnSelectChange } from "@/utils/updateOnSelectChange";
+import { updateSelector } from "@/utils/updateSelector";
+import { findCurrentItemData } from "@/utils/findCurrentItemData";
+import { updateText } from "@/utils/updateText";
+import { updateDelay } from "@/utils/updateDelay";
 
 export default function Home() {
   const [items, setItems] = useState([]);
-  const [selector, setSelector] = useState("");
-  const [text, setText] = useState("");
-  const [delay, setDelay] = useState(0);
-  // const [itemType, setItemType] = useState("Wait");
-  // add item
-  const addItem = () => {
+  // handle add item
+  const handleAddItem = () => {
     setItems((prev) => {
       return [
         ...prev,
@@ -23,50 +24,72 @@ export default function Home() {
       ];
     });
   };
-  // change item type
-  const handleTypeChange = (e) => {
-    const index = Number(e.target.dataset.id);
-    const itemToUpdate = items[index];
-    const isWait = itemToUpdate.hasOwnProperty("wait");
-    const isClick = itemToUpdate.hasOwnProperty("click");
-    const isFill = itemToUpdate.hasOwnProperty("fill");
-    const isDelay = itemToUpdate.hasOwnProperty("delay");
-    // store previous value
-    let selector = "";
-    let delay = 0;
-    let text = "";
-    if (isWait) {
-      selector = itemToUpdate.wait;
-    } else if (isFill) {
-      selector = itemToUpdate.fill.selector || "";
-      delay = itemToUpdate.fill.delay || 0;
-      text = itemToUpdate.fill.text || "";
-    } else if (isClick) {
-      selector = itemToUpdate.click || "";
-    } else {
-      delay = itemToUpdate.delay || 0;
-    }
-    // update item and set into items
-    let newItem;
-    if (e.target.value === "wait") {
-      newItem = { wait: selector };
-    } else if (e.target.value === "fill") {
-      newItem = { fill: { selector, delay, text } };
-    } else if (e.target.value === "delay") {
-      newItem = { delay };
-    } else {
-      newItem = { click: selector };
-    }
-    const updatedItems = items.map((item, i) => (i === index ? newItem : item));
+  // handle clear items
+  const handleClearItems = () => {
+    setItems([]);
+  };
+  // handle clone item
+  const handleCloneItem = (e) => {
+    const { index, currentItem } = findCurrentItemData(e, items);
+    const updatedItems = items.map((item) => item);
+    updatedItems.splice(index, 0, currentItem);
     setItems(updatedItems);
   };
 
-  // change json value
+  // handle delete item
+  const handleDeleteItem = (e) => {
+    const { index } = findCurrentItemData(e, items);
+    const updatedItems = items.filter((item, i) => i !== index);
+    setItems(updatedItems);
+  };
+  // handle change item type
+  const handleTypeChange = (e) => {
+    // find target item and get its prev value
+    const { index, currentItem, type } = findCurrentItemData(e, items);
+    const currentInputsValue = findInputsValue(type, currentItem);
+    // update item and set into items
+    const updatedItem = updateOnSelectChange(e, currentInputsValue);
+    const updatedItems = items.map((item, i) =>
+      i === index ? updatedItem : item
+    );
+    setItems(updatedItems);
+  };
+  // handle change selector
+  const handleSelectorChange = (e) => {
+    const { index, currentItem, type } = findCurrentItemData(e, items);
+    // update item and set into items
+    const updatedItem = updateSelector(e, currentItem, type);
+    const updatedItems = items.map((item, i) =>
+      i === index ? updatedItem : item
+    );
+    setItems(updatedItems);
+  };
+  // handle change text
+  const handleTextChange = (e) => {
+    const { index, currentItem } = findCurrentItemData(e, items);
+    // update item and set into items
+    const updatedItem = updateText(e, currentItem);
+    const updatedItems = items.map((item, i) =>
+      i === index ? updatedItem : item
+    );
+    setItems(updatedItems);
+  };
+  // handle change delay
+  const handleDelayChange = (e) => {
+    const { index, currentItem, type } = findCurrentItemData(e, items);
+    // update item and set into items
+    const updatedItem = updateDelay(e, currentItem, type);
+    const updatedItems = items.map((item, i) =>
+      i === index ? updatedItem : item
+    );
+    setItems(updatedItems);
+  };
+
+  // handle change json value
   const handleJsonChange = (e) => {
     try {
       const updatedItems = JSON.parse(e.target.value);
-      const newItems = updatedItems.map((item) => item);
-      setItems(newItems);
+      setItems(updatedItems);
     } catch (error) {
       alert("invalid input");
     }
@@ -81,7 +104,6 @@ export default function Home() {
             Browser Instruction List
           </h2>
           {/* clear, add, undo, and redo button  */}
-          {/* <InitialBtns /> */}
           <div className="flex justify-center sm:justify-end gap-2 items-center">
             <button className="px-1 py-2 border border-gray-300 rounded">
               <Undo />
@@ -89,11 +111,14 @@ export default function Home() {
             <button className="px-1 py-2 border border-gray-300 rounded">
               <Redo />
             </button>
-            <button className="p-1 border border-gray-300 rounded">
+            <button
+              onClick={handleClearItems}
+              className="p-1 border border-gray-300 rounded"
+            >
               Clear
             </button>
             <button
-              onClick={addItem}
+              onClick={handleAddItem}
               className="px-1 py-2 border border-gray-300 rounded"
             >
               <AddIcon />
@@ -104,24 +129,11 @@ export default function Home() {
             {items.length > 0 &&
               items.map((item, index) => {
                 const type = Object.keys(item)[0];
-                let selector = "";
-                let delay = 0;
-                let text = "";
-                if (type === "wait") {
-                  selector = item.wait;
-                } else if (type === "fill") {
-                  selector = item.fill.selector || "";
-                  delay = item.fill.delay || 0;
-                  text = item.fill.text || "";
-                } else if (type === "click") {
-                  selector = item.click || "";
-                } else {
-                  delay = item.delay || 0;
-                }
+                const { selector, text, delay } = findInputsValue(type, item);
                 return (
                   <li
                     key={index}
-                    className="p-1 border-2 border-gray-300 rounded flex gap-1"
+                    className="p-1 border border-gray-400 rounded flex gap-1"
                   >
                     <button>
                       <BarIcon />
@@ -142,7 +154,9 @@ export default function Home() {
                     <input
                       type="text"
                       name="selector"
-                      defaultValue={selector}
+                      value={selector}
+                      onChange={handleSelectorChange}
+                      data-id={index}
                       className={`w-full p-1 border border-gray-300 rounded ${
                         type === "delay" ? "hidden" : ""
                       }`}
@@ -150,7 +164,9 @@ export default function Home() {
                     <input
                       type="text"
                       name="text"
-                      defaultValue={text}
+                      value={text}
+                      onChange={handleTextChange}
+                      data-id={index}
                       className={`w-full p-1 border border-gray-300 rounded ${
                         type === "fill" ? "" : "hidden"
                       }`}
@@ -158,16 +174,26 @@ export default function Home() {
                     <input
                       type="number"
                       name="delay"
-                      defaultValue={delay}
+                      value={delay}
+                      onChange={handleDelayChange}
+                      data-id={index}
                       className={`w-full p-1 border border-gray-300 rounded ${
                         type === "fill" || type === "delay" ? "" : "hidden"
                       }`}
                     />
-                    <button className="p-1 border border-gray-300 rounded">
+                    <button
+                      onClick={handleCloneItem}
+                      data-id={index}
+                      className="p-1 border border-gray-300 rounded"
+                    >
                       Clone
                     </button>
-                    <button className="px-1 py-2 border border-gray-300 rounded">
-                      <XmarkIcon />
+                    <button
+                      onClick={handleDeleteItem}
+                      data-id={index}
+                      className="px-2 py-1 border border-gray-300 rounded"
+                    >
+                      x
                     </button>
                   </li>
                 );
