@@ -24,9 +24,12 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  button[disabled] {
+    color: rgb(176, 170, 170);
+  }
 }
 
-/* @layer base {
+@layer base {
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"] {
@@ -34,4 +37,4 @@ body {
     margin: 0;
     -moz-appearance: textfield !important;
   }
-} */
+}

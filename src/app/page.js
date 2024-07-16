@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import AddIcon from "@/components/icons/AddIcon";
 import BarIcon from "@/components/icons/BarIcon";
 import Redo from "@/components/icons/Redo";
@@ -13,16 +13,43 @@ import { updateDelay } from "@/utils/updateDelay";
 
 export default function Home() {
   const [items, setItems] = useState([]);
+
+  const history = useRef([]);
+  const historyIndex = useRef(-1);
+  // save history
+  const saveHistory = (newItems) => {
+    history.current = history.current.slice(0, historyIndex.current + 1);
+    history.current.push(newItems);
+    historyIndex.current += 1;
+  };
+
+  // handle undo
+  const handleUndo = () => {
+    if (historyIndex.current >= 0) {
+      historyIndex.current -= 1;
+      setItems(history.current[historyIndex.current] || []);
+    }
+  };
+
+  // handle redo
+  const handleRedo = () => {
+    if (historyIndex.current < history.current.length - 1) {
+      historyIndex.current += 1;
+      setItems(history.current[historyIndex.current]);
+    }
+  };
+
   // handle add item
   const handleAddItem = () => {
-    setItems((prev) => {
-      return [
-        ...prev,
-        {
-          wait: "",
-        },
-      ];
-    });
+    const updatedItems = [
+      ...items,
+      {
+        wait: "",
+      },
+    ];
+    setItems(updatedItems);
+
+    saveHistory(updatedItems);
   };
   // handle clear items
   const handleClearItems = () => {
@@ -34,6 +61,7 @@ export default function Home() {
     const updatedItems = items.map((item) => item);
     updatedItems.splice(index, 0, currentItem);
     setItems(updatedItems);
+    saveHistory(updatedItems);
   };
 
   // handle delete item
@@ -41,6 +69,7 @@ export default function Home() {
     const { index } = findCurrentItemData(e, items);
     const updatedItems = items.filter((item, i) => i !== index);
     setItems(updatedItems);
+    saveHistory(updatedItems);
   };
   // handle change item type
   const handleTypeChange = (e) => {
@@ -53,6 +82,7 @@ export default function Home() {
       i === index ? updatedItem : item
     );
     setItems(updatedItems);
+    saveHistory(updatedItems);
   };
   // handle change selector
   const handleSelectorChange = (e) => {
@@ -63,6 +93,7 @@ export default function Home() {
       i === index ? updatedItem : item
     );
     setItems(updatedItems);
+    saveHistory(updatedItems);
   };
   // handle change text
   const handleTextChange = (e) => {
@@ -73,6 +104,7 @@ export default function Home() {
       i === index ? updatedItem : item
     );
     setItems(updatedItems);
+    saveHistory(updatedItems);
   };
   // handle change delay
   const handleDelayChange = (e) => {
@@ -83,6 +115,7 @@ export default function Home() {
       i === index ? updatedItem : item
     );
     setItems(updatedItems);
+    saveHistory(updatedItems);
   };
 
   // handle change json value
@@ -90,6 +123,7 @@ export default function Home() {
     try {
       const updatedItems = JSON.parse(e.target.value);
       setItems(updatedItems);
+      saveHistory(updatedItems);
     } catch (error) {
       alert("invalid input");
     }
@@ -105,10 +139,18 @@ export default function Home() {
           </h2>
           {/* clear, add, undo, and redo button  */}
           <div className="flex justify-center sm:justify-end gap-2 items-center">
-            <button className="px-1 py-2 border border-gray-300 rounded">
+            <button
+              onClick={handleUndo}
+              disabled={historyIndex.current < 0}
+              className="px-1 py-2 border border-gray-300 rounded"
+            >
               <Undo />
             </button>
-            <button className="px-1 py-2 border border-gray-300 rounded">
+            <button
+              onClick={handleRedo}
+              className="px-1 py-2 border border-gray-300 rounded"
+              disabled={historyIndex.current >= history.current.length - 1}
+            >
               <Redo />
             </button>
             <button
