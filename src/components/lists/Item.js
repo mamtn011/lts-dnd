@@ -5,8 +5,8 @@ import { CSS } from "@dnd-kit/utilities";
 import CloneDelete from "./CloneDelete";
 import SelectType from "./SelectType";
 import SelectorInput from "./SelectorInput";
-import TextInput from "./Textinput";
 import DelayInput from "./DelayInput";
+import TextInput from "./TextInput";
 const Item = ({ item, index }) => {
   const { id } = item;
 
