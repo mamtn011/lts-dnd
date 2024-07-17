@@ -64,6 +64,7 @@ export const ItemsProvider = ({ children }) => {
     const newItems = [
       ...items,
       {
+        id: Date.now(),
         wait: "",
       },
     ];

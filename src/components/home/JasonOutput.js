@@ -2,11 +2,16 @@ import { useItems } from "@/context/ItemContext";
 
 const JasonOutput = () => {
   const { items, changeJsonValue } = useItems();
+  const itemsForJson = items.map(({ id, ...rest }) => rest);
   // handle change json value
   const handleJsonChange = (e) => {
     try {
       const updatedItems = JSON.parse(e.target.value);
-      changeJsonValue(updatedItems);
+      const newItems = updatedItems.map((item) => ({
+        id: Date.now() + Math.random(),
+        ...item,
+      }));
+      changeJsonValue(newItems);
     } catch (error) {
       alert("invalid input");
     }
@@ -17,7 +22,7 @@ const JasonOutput = () => {
         JSON Output
       </h2>
       <textarea
-        value={JSON.stringify(items, null, 2)}
+        value={JSON.stringify(itemsForJson, null, 2)}
         onChange={handleJsonChange}
         className="border-2 border-gray-900 h-72 rounded overflow-y-scroll p-2 focus:outline-none"
       ></textarea>

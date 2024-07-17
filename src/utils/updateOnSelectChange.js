@@ -1,9 +1,10 @@
-export const updateOnSelectChange = (e, currentInputsValue) => {
+export const updateOnSelectChange = (e, currentInputsValue, id) => {
   let newItem;
   if (e.target.value === "wait") {
-    newItem = { wait: currentInputsValue.selector };
+    newItem = { id, wait: currentInputsValue.selector };
   } else if (e.target.value === "fill") {
     newItem = {
+      id,
       fill: {
         selector: currentInputsValue.selector,
         delay: currentInputsValue.delay,
@@ -11,9 +12,9 @@ export const updateOnSelectChange = (e, currentInputsValue) => {
       },
     };
   } else if (e.target.value === "delay") {
-    newItem = { delay: currentInputsValue.delay };
+    newItem = { id, delay: currentInputsValue.delay };
   } else {
-    newItem = { click: currentInputsValue.selector };
+    newItem = { id, click: currentInputsValue.selector };
   }
   return newItem;
 };

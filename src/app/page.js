@@ -3,10 +3,24 @@ import { useItems } from "@/context/ItemContext";
 import JasonOutput from "@/components/home/JasonOutput";
 import InitialBtns from "@/components/home/InitialBtns";
 import Item from "@/components/lists/Item";
+import { DndContext } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 export default function Home() {
-  const { items } = useItems();
-
+  const { items, changeJsonValue } = useItems();
+  const handleDragEnd = (e) => {
+    const { active, over } = e;
+    if (over && active.id !== over.id) {
+      const oldIndex = active.data.current.sortable.index;
+      const newIndex = over.data.current.sortable.index;
+      const updatedItems = arrayMove(items, oldIndex, newIndex);
+      changeJsonValue(updatedItems);
+    }
+  };
   // JSX
   return (
     <main className="max-w-7xl mx-auto py-8">
@@ -17,13 +31,21 @@ export default function Home() {
             Browser Instruction List
           </h2>
           {/* clear, add, undo, and redo button  */}
-          <InitialBtns />
-
-          {/* items list  */}
-          <ul className="flex flex-col gap-4 w-full">
-            {items.length > 0 &&
-              items.map((item, index) => <Item item={item} index={index} />)}
-          </ul>
+          <DndContext onDragEnd={handleDragEnd}>
+            <ul className="flex flex-col gap-4 w-full">
+              <InitialBtns />
+              <SortableContext
+                items={items}
+                strategy={verticalListSortingStrategy}
+              >
+                {/* items list  */}
+                {items.length > 0 &&
+                  items.map((item, index) => (
+                    <Item key={item.id} item={item} index={index} />
+                  ))}
+              </SortableContext>
+            </ul>
+          </DndContext>
         </div>
         {/* JSON section  */}
         <JasonOutput />
