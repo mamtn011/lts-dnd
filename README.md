@@ -15,6 +15,7 @@ This tool allows you to create and manage a list of browser instructions. You ca
 - **Edit Item**: Change the type and details of each item.
 - **Undo/Redo**: Undo or redo changes to the item list.
 - **JSON View**: View and edit the item as JSON.
+- **Import/Export JSON**: Export and import json file.
 - **Local Storage**: Save and load the list from local storage.
 
 ## Instructions
@@ -57,6 +58,12 @@ This tool allows you to create and manage a list of browser instructions. You ca
 - You can edit the JSON directly. Ensure the JSON format is correct.
 - Changes in the JSON view will change in the list item automatically.
 - Invalid JSON in the JSON view will alert an error message.
+
+### Download and Upload JSON file
+
+- Click the "Export" button to download json file.
+- Click the "Import" button to import items as json file.
+- Invalid JSON in or invalid input types will alert an error message.
 
 ### Saving to Local Storage
 
